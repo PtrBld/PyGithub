@@ -108,6 +108,7 @@ class Github(object):
         per_page=DEFAULT_PER_PAGE,
         verify=True,
         retry=None,
+        respect_rate_limit=False
     ):
         """
         :param login_or_token: string
@@ -120,6 +121,7 @@ class Github(object):
         :param per_page: int
         :param verify: boolean or string
         :param retry: int or urllib3.util.retry.Retry object
+        :param respect_rate_limit: boolean
         """
 
         assert login_or_token is None or isinstance(login_or_token, str), login_or_token
@@ -153,6 +155,7 @@ class Github(object):
             per_page,
             verify,
             retry,
+            respect_rate_limit
         )
 
     def __get_FIX_REPO_GET_GIT_REF(self):

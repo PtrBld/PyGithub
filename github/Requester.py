@@ -53,6 +53,7 @@
 ################################################################################
 
 import base64
+import calendar
 import json
 import logging
 import mimetypes
@@ -266,6 +267,7 @@ class Requester:
         per_page,
         verify,
         retry,
+        respect_rate_limit
     ):
         self._initializeDebugFeature()
 
@@ -312,6 +314,7 @@ class Requester:
         )
         self.__userAgent = user_agent
         self.__verify = verify
+        self.__respect_rate_limit = respect_rate_limit
 
     def requestJsonAndCheck(self, verb, url, parameters=None, headers=None, input=None):
         return self.__check(
@@ -470,7 +473,8 @@ class Requester:
             parameters = dict()
         if requestHeaders is None:
             requestHeaders = dict()
-
+        if self.__respect_rate_limit:
+            self.__rate_limit_check()
         self.__authenticate(url, requestHeaders, parameters)
         requestHeaders["User-Agent"] = self.__userAgent
 
@@ -504,6 +508,13 @@ class Requester:
         self.DEBUG_ON_RESPONSE(status, responseHeaders, output)
 
         return status, responseHeaders, output
+
+    def __rate_limit_check(self):
+        remaining_requests, _ = self.rate_limiting
+        if remaining_requests < 5:
+            sleep_time = self.rate_limiting_resettime - calendar.timegm(time.gmtime()) + 5  # add 5 seconds to be sure the rate limit has been reset
+            logging.warn("Rate limit reached! Waiting {} seconds until next request".format(sleep_time))
+            time.sleep(sleep_time)
 
     def __requestRaw(self, cnx, verb, url, requestHeaders, input):
         original_cnx = cnx
