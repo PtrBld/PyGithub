@@ -2395,6 +2395,7 @@ class Repository(github.GithubObject.CompletableGithubObject):
         direction=github.GithubObject.NotSet,
         since=github.GithubObject.NotSet,
         creator=github.GithubObject.NotSet,
+        include_pulls=github.GithubObject.NotSet,
     ):
         """
         :calls: `GET /repos/:owner/:repo/issues <http://developer.github.com/v3/issues>`_
@@ -2407,6 +2408,7 @@ class Repository(github.GithubObject.CompletableGithubObject):
         :param direction: string
         :param since: datetime.datetime
         :param creator: string or :class:`github.NamedUser.NamedUser`
+        :param include_pulls: boolean
         :rtype: :class:`github.PaginatedList.PaginatedList` of :class:`github.Issue.Issue`
         """
         assert (
@@ -2440,6 +2442,7 @@ class Repository(github.GithubObject.CompletableGithubObject):
             or isinstance(creator, github.NamedUser.NamedUser)
             or isinstance(creator, str)
         ), creator
+        assert include_pulls is github.GithubObject.NotSet or isinstance(include_pulls, bool), include_pulls
         url_parameters = dict()
         if milestone is not github.GithubObject.NotSet:
             if isinstance(milestone, str):
@@ -2473,6 +2476,9 @@ class Repository(github.GithubObject.CompletableGithubObject):
                 url_parameters["creator"] = creator
             else:
                 url_parameters["creator"] = creator._identity
+        if include_pulls is not github.GithubObject.NotSet:
+            if isinstance(creator, bool) and not include_pulls:
+                url_parameters["pulls"] = include_pulls
         return github.PaginatedList.PaginatedList(
             github.Issue.Issue, self._requester, self.url + "/issues", url_parameters
         )
